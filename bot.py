@@ -1,15 +1,11 @@
 import asyncio
 import random
 import logging
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
-from aiogram import F
 
 TOKEN = "8587415331:AAHzZpuSQSXL4cT67u-p1pvNxSWo4DbqWK8"
-
-bot = Bot(token=TOKEN)
-dp = Dispatcher()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,28 +14,29 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
 def log_user_action(message: Message, action: str):
     user = message.from_user
 
     if user.username:
-        user_info = f"@{user.username}({user.full_name}) {user.id}"
+        user_info = f"@{user.username} ({user.full_name}) {user.id}"
     else:
         user_info = f"{user.full_name} {user.id}"
 
-    logging.info(f"{user_info} натиснув кнопку {action}")
+    logging.info(f"{user_info} -> {action}")
 
 compliments = [
     "Ти найкраща мама у світі 💖",
     "Ти завжди підтримуєш мене 🌸",
-    "Твоя усмішка робить мій день кращим ☀️",
-    "Ти моя опора і натхнення 💐",
     "З тобою завжди тепло і спокійно 🫶"
 ]
 
 thanks = [
     "Дякую тобі за турботу 💖",
     "Дякую за смачну їжу 🍲",
-    "Дякую за терпіння і любов 🌷",
+    "Дякую за любов 🌷",
     "Дякую, що завжди віриш у мене 🌟"
 ]
 
@@ -62,31 +59,33 @@ async def start_handler(message: Message):
 
 @dp.message(F.text == "🌷 Комплімент")
 async def send_compliment(message: Message):
-    log_user_action(message, "🌷 Комплімент")
-
+    log_user_action(message, "compliment button")
     await message.answer(random.choice(compliments))
 
 @dp.message(F.text == "💖 Подяка")
 async def send_thanks(message: Message):
-    log_user_action(message, "💖 Подяка")
-
+    log_user_action(message, "thanks button")
     await message.answer(random.choice(thanks))
 
 @dp.message(Command("compliment"))
 async def compliment_command(message: Message):
     log_user_action(message, "/compliment")
-
     await message.answer(random.choice(compliments))
 
 @dp.message(Command("thanks"))
 async def thanks_command(message: Message):
     log_user_action(message, "/thanks")
-
     await message.answer(random.choice(thanks))
 
+
 async def main():
-    logging.info("Бот запущено")
+    logging.info("BOT STARTED")
+
+    # інколи webhook блокує polling
+    await bot.delete_webhook(drop_pending_updates=True)
+
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
